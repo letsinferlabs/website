@@ -9,19 +9,63 @@ prefix=""
 launcher_dir="/usr/local/bin"
 user_install=0
 run_setup=1
+progress_active=0
+progress_enabled=1
+interactive_output=0
+brand_mark=">"
+success_mark="+"
+failure_mark="x"
+badge_text=">  LET'S INFER"
+blue=""
+green=""
+red=""
+dim=""
+reset=""
+
+clear_progress() {
+    if [ "$progress_active" -eq 1 ]; then
+        printf '\r\033[2K' >&2
+    fi
+}
+
+progress() {
+    percent=$1
+    message=$2
+    if [ "$progress_active" -eq 1 ]; then
+        printf '\r\033[2K%s  %sINSTALL%s  %s%3s%%%s  %s' \
+            "$badge_text" "$blue" "$reset" "$blue" "$percent" "$reset" \
+            "$message" >&2
+    fi
+}
+
+finish_progress() {
+    if [ "$progress_active" -eq 1 ]; then
+        progress 100 "Complete"
+        printf '\n' >&2
+        progress_active=0
+    fi
+}
 
 usage() {
     cat <<'EOF'
-Usage: install.sh [--version VERSION] [--prefix PATH] [--user] [--no-setup]
+Usage: install.sh [--version VERSION] [--prefix PATH] [--user] [--no-setup] [--no-progress]
 
-Install and initialize the latest stable Let's Infer core release. The default
-is a system command in /usr/local/bin backed by immutable files in
-/opt/letsinfer. --user installs under ~/.local without administrator access.
+Install and initialize the latest published Let's Infer core release. Immutable
+core files live under $LETSINFER_HOME/core. The default exposes the command in
+/usr/local/bin; --user exposes it from ~/.local/bin without administrator access.
 EOF
 }
 
 fail() {
-    printf 'letsinfer install: %s\n' "$*" >&2
+    clear_progress
+    progress_active=0
+    if [ "$interactive_output" -eq 1 ]; then
+        printf '%s  %sINSTALL%s\n\n%s%s  Installation failed%s\n   %s\n' \
+            "$badge_text" "$red" "$reset" "$red" "$failure_mark" \
+            "$reset" "$*" >&2
+    else
+        printf 'letsinfer install: %s\n' "$*" >&2
+    fi
     exit 1
 }
 
@@ -48,6 +92,10 @@ while [ "$#" -gt 0 ]; do
             run_setup=0
             shift
             ;;
+        --no-progress)
+            progress_enabled=0
+            shift
+            ;;
         --base-url)
             [ "$#" -ge 2 ] || fail "--base-url requires a value"
             base_url=$2
@@ -68,6 +116,47 @@ done
 allow_insecure=$(printenv LETSINFER_ALLOW_INSECURE_RELEASE_URL 2>/dev/null || true)
 signers_override=$(printenv LETSINFER_RELEASE_ALLOWED_SIGNERS_PATH 2>/dev/null || true)
 current_path=$(printenv PATH 2>/dev/null || true)
+if [ -n "${LETSINFER_HOME:-}" ]; then
+    letsinfer_home=$LETSINFER_HOME
+else
+    letsinfer_home="$HOME/.local/share/letsinfer"
+    LETSINFER_HOME_DEFAULTED=1
+    export LETSINFER_HOME_DEFAULTED
+fi
+case "$letsinfer_home" in
+    /*) ;;
+    *) fail "LETSINFER_HOME must be an absolute path" ;;
+esac
+LETSINFER_HOME=$letsinfer_home
+export LETSINFER_HOME
+case "${TERM:-}" in
+    ""|dumb) ;;
+    *)
+        if [ -t 2 ]; then
+            interactive_output=1
+            if [ "$progress_enabled" -eq 1 ]; then
+                progress_active=1
+            fi
+        fi
+        ;;
+esac
+case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+    *[Uu][Tt][Ff]-8*|*[Uu][Tt][Ff]8*)
+        brand_mark="ϟ"
+        success_mark="✓"
+        failure_mark="✗"
+        ;;
+esac
+if [ "$interactive_output" -eq 1 ] && [ -z "${NO_COLOR+x}" ]; then
+    reset=$(printf '\033[0m')
+    blue=$(printf '\033[1;38;2;0;156;223m')
+    green=$(printf '\033[1;38;2;97;187;70m')
+    red=$(printf '\033[1;38;2;226;56;56m')
+    dim=$(printf '\033[2m')
+    badge_text=$(printf '\033[1;38;2;30;30;30;48;2;247;247;247m %s  LET\047S INFER \033[0m' "$brand_mark")
+else
+    badge_text="$brand_mark  LET'S INFER"
+fi
 
 case "$(uname -s)" in
     Linux) platform_os="linux" ;;
@@ -87,7 +176,7 @@ for command_name in curl python3 ssh-keygen tar mktemp; do
 done
 if [ "$user_install" -eq 0 ]; then
     command -v sudo >/dev/null 2>&1 || fail "sudo is required for the default system installation"
-    prefix="/opt/letsinfer"
+    sudo -v
 fi
 
 if [ -n "$version" ]; then
@@ -101,11 +190,77 @@ PY
 fi
 
 umask 077
+[ ! -L "$LETSINFER_HOME" ] || fail "LETSINFER_HOME cannot be a symlink"
+mkdir -p "$LETSINFER_HOME"
+chmod 0700 "$LETSINFER_HOME"
 temporary=$(mktemp -d "/tmp/letsinfer-install.XXXXXXXX")
 cleanup() {
+    clear_progress
     rm -rf -- "$temporary"
 }
 trap cleanup EXIT HUP INT TERM
+
+openssl_development_ready() {
+    command -v cc >/dev/null 2>&1 || return 1
+    printf '#include <openssl/ssl.h>\n' \
+        | cc -E - >/dev/null 2>&1
+}
+
+ensure_setup_dependencies() {
+    [ "$run_setup" -eq 1 ] || return 0
+    if [ "$platform_os" = "linux" ]; then
+        ready=1
+        for setup_command in cmake ctest cc openssl; do
+            command -v "$setup_command" >/dev/null 2>&1 || ready=0
+        done
+        openssl_development_ready || ready=0
+        [ "$ready" -eq 0 ] || return 0
+        command -v sudo >/dev/null 2>&1 \
+            || fail "sudo is required to install system build requirements"
+        progress 10 "Installing system requirements"
+        dependency_log="$temporary/dependencies.log"
+        if command -v apt-get >/dev/null 2>&1; then
+            if ! {
+                sudo apt-get update -qq &&
+                sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+                    build-essential cmake openssl libssl-dev
+            } >"$dependency_log" 2>&1; then
+                tail -n 40 "$dependency_log" >&2
+                fail "apt could not install system build requirements"
+            fi
+        elif command -v dnf >/dev/null 2>&1; then
+            if ! sudo dnf install -y gcc gcc-c++ make cmake openssl openssl-devel \
+                >"$dependency_log" 2>&1; then
+                tail -n 40 "$dependency_log" >&2
+                fail "dnf could not install system build requirements"
+            fi
+        elif command -v zypper >/dev/null 2>&1; then
+            if ! sudo zypper --non-interactive install \
+                gcc gcc-c++ make cmake openssl libopenssl-devel \
+                >"$dependency_log" 2>&1; then
+                tail -n 40 "$dependency_log" >&2
+                fail "zypper could not install system build requirements"
+            fi
+        elif command -v pacman >/dev/null 2>&1; then
+            if ! sudo pacman --sync --needed --noconfirm \
+                base-devel cmake openssl >"$dependency_log" 2>&1; then
+                tail -n 40 "$dependency_log" >&2
+                fail "pacman could not install system build requirements"
+            fi
+        else
+            fail "install a C compiler, CMake, and OpenSSL development headers"
+        fi
+        for setup_command in cmake ctest cc openssl; do
+            command -v "$setup_command" >/dev/null 2>&1 \
+                || fail "system requirement remains unavailable: $setup_command"
+        done
+        openssl_development_ready \
+            || fail "OpenSSL development headers remain unavailable"
+    fi
+}
+
+progress 5 "Resolving release"
+ensure_setup_dependencies
 
 checksums="$temporary/SHA256SUMS"
 signature="$temporary/SHA256SUMS.sig"
@@ -140,8 +295,8 @@ elif [ -n "$version" ]; then
     release_base="https://github.com/$repository/releases/download/v$version"
     download "$release_base/SHA256SUMS" "$checksums"
 else
-    metadata="$temporary/latest.json"
-    download "https://api.github.com/repos/$repository/releases/latest" "$metadata"
+    metadata="$temporary/releases.json"
+    download "https://api.github.com/repos/$repository/releases?per_page=30" "$metadata"
     version=$(python3 - "$metadata" <<'PY'
 import json
 import pathlib
@@ -152,20 +307,36 @@ try:
     value = pathlib.Path(sys.argv[1]).read_bytes()
     if len(value) > 1024 * 1024:
         raise ValueError
-    tag = json.loads(value)["tag_name"]
-except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+    releases = json.loads(value)
+except (OSError, ValueError, TypeError, json.JSONDecodeError):
     raise SystemExit(1)
-if not isinstance(tag, str) or re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag) is None:
+if not isinstance(releases, list):
     raise SystemExit(1)
-print(tag[1:])
+pattern = re.compile(r"v([0-9]+)\.([0-9]+)\.([0-9]+)(?:-rc\.([0-9]+))?")
+candidates = []
+for release in releases:
+    if not isinstance(release, dict) or release.get("draft") is not False:
+        continue
+    tag = release.get("tag_name")
+    match = pattern.fullmatch(tag) if isinstance(tag, str) else None
+    if match is None:
+        continue
+    major, minor, patch = (int(match.group(index)) for index in range(1, 4))
+    rc = match.group(4)
+    key = (major, minor, patch, 1 if rc is None else 0, int(rc or 0))
+    candidates.append((key, tag[1:]))
+if not candidates:
+    raise SystemExit(1)
+print(max(candidates)[1])
 PY
-    ) || fail "latest stable release metadata is invalid"
+    ) || fail "latest published release metadata is invalid"
     release_base="https://github.com/$repository/releases/download/v$version"
     download "$release_base/SHA256SUMS" "$checksums"
 fi
 
 download "$release_base/SHA256SUMS.sig" "$signature"
 download "$release_base/$archive_name" "$archive"
+progress 35 "Verifying signed release"
 
 if [ -n "$signers_override" ]; then
     [ -f "$signers_override" ] \
@@ -213,6 +384,8 @@ if digest.hexdigest() != expected:
     raise SystemExit(1)
 PY
 
+progress 55 "Verifying source archive"
+
 unpacked="$temporary/unpacked"
 mkdir "$unpacked"
 tar -xzf "$archive" -C "$unpacked"
@@ -225,6 +398,8 @@ if [ -z "$version" ]; then
         python3 -c 'from core import PRODUCT_VERSION; print(PRODUCT_VERSION)'
     ) || fail "release version is unreadable"
 fi
+
+progress 70 "Installing core"
 
 if [ "$run_setup" -eq 1 ]; then
     if [ "$platform_os" = "linux" ]; then
@@ -252,19 +427,11 @@ fi
 
 umask 022
 if [ "$user_install" -eq 1 ]; then
-    "$unpacked/letsinfer/bin/letsinfer-install" --prefix "$prefix" >/dev/null
+    "$unpacked/letsinfer/bin/letsinfer-install" \
+        --home "$LETSINFER_HOME" --launcher-root "$prefix/bin" >/dev/null
     command_path="$prefix/bin/letsinfer"
 else
-    sudo "$unpacked/letsinfer/bin/letsinfer-install" --prefix "$prefix" >/dev/null
-    for managed_directory in \
-        "$prefix" \
-        "$prefix/bin" \
-        "$prefix/lib" \
-        "$prefix/lib/letsinfer" \
-        "$prefix/lib/letsinfer/$version"
-    do
-        sudo chmod 0755 "$managed_directory"
-    done
+    "$unpacked/letsinfer/bin/letsinfer-install" --home "$LETSINFER_HOME" >/dev/null
     sudo install -d -m 0755 "$launcher_dir"
     for launcher_name in letsinfer letsinfer-recovery; do
         launcher="$launcher_dir/$launcher_name"
@@ -273,7 +440,7 @@ else
         fi
         temporary_launcher="$launcher.letsinfer.$$"
         sudo rm -f -- "$temporary_launcher"
-        sudo ln -s "$prefix/bin/$launcher_name" "$temporary_launcher"
+        sudo ln -s "$LETSINFER_HOME/core/current/bin/$launcher_name" "$temporary_launcher"
         sudo mv -f -- "$temporary_launcher" "$launcher"
     done
     command_path="$launcher_dir/letsinfer"
@@ -281,16 +448,73 @@ fi
 umask 077
 
 if [ "$run_setup" -eq 1 ]; then
-    "$command_path" setup
+    setup_json="$temporary/setup.json"
+    setup_log="$temporary/setup.stderr"
+    setup_summary="$temporary/setup.summary"
+    progress 80 "Initializing services"
+    if ! "$command_path" setup --json >"$setup_json" 2>"$setup_log"; then
+        clear_progress
+        progress_active=0
+        if [ -s "$setup_log" ]; then
+            tail -n 80 "$setup_log" >&2
+        fi
+        fail "site initialization failed"
+    fi
+    if ! python3 - "$setup_json" >"$setup_summary" <<'PY'
+import json
+import pathlib
+import sys
+
+try:
+    value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+except (OSError, ValueError, json.JSONDecodeError):
+    raise SystemExit(1)
+if not isinstance(value, dict):
+    raise SystemExit(1)
+
+def safe_field(name, *, required=False):
+    item = value.get(name)
+    if item is None and not required:
+        return None
+    if not isinstance(item, str) or not item.strip():
+        raise SystemExit(1)
+    if any(ord(character) < 32 or ord(character) == 127 for character in item):
+        raise SystemExit(1)
+    return item
+
+node = safe_field("display_name", required=True)
+endpoint = safe_field("inference_endpoint")
+key_file = safe_field("api_key_file")
+print(f"   Node      {node}")
+if endpoint:
+    print(f"   API       {endpoint}")
+if key_file:
+    print(f"   API key   {key_file}")
+PY
+    then
+        fail "site initialization result is invalid"
+    fi
 fi
+
+finish_progress
 
 if [ "$run_setup" -eq 1 ]; then
     completion="installed and initialized"
 else
     completion="installed"
 fi
-printf 'Let\047s Infer %s %s for %s/%s.\n' \
-    "$version" "$completion" "$platform_os" "$platform_arch" >&2
+if [ "$interactive_output" -eq 1 ]; then
+    printf '%s  %s%s%s  Let\047s Infer %s %s\n' \
+        "$badge_text" "$green" "$success_mark" "$reset" "$version" \
+        "$completion" >&2
+    printf '   %s%s/%s%s\n' "$dim" "$platform_os" "$platform_arch" "$reset" >&2
+else
+    printf 'Let\047s Infer %s %s for %s/%s.\n' \
+        "$version" "$completion" "$platform_os" "$platform_arch" >&2
+fi
+if [ "$run_setup" -eq 1 ]; then
+    sed -n '1,$p' "$setup_summary" >&2
+fi
 if [ "$user_install" -eq 1 ]; then
     case ":$current_path:" in
         *":$prefix/bin:"*) ;;
