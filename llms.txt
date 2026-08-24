@@ -1,0 +1,25 @@
+# Let's Infer
+
+> Let's Infer turns local AI hardware into one reliable, OpenAI-compatible inference service.
+
+Let's Infer is an open-source, engine-agnostic inference distribution and runtime manager. Start with a model name; it handles hardware matching, exact model artifacts, the engine, lifecycle, safety, telemetry, and updates.
+
+## Start here
+
+- [Documentation](https://letsinfer.ai/docs/): Product overview and documentation map.
+- [Installation](https://letsinfer.ai/docs/getting-started/installation.html): Install on Linux or macOS and initialize a node.
+- [Features](https://letsinfer.ai/docs/features.html): Model installation, serving, replication, observability, safety, and updates.
+- [CLI reference](https://letsinfer.ai/docs/reference/cli.html): Stable command-line workflows.
+
+## Technical concepts
+
+- [Runtime candidates](https://letsinfer.ai/docs/concepts/runtime-packs.html): Exact model, Engine OCI, target, recipe, and evidence bundles.
+- [Engine protocol](https://letsinfer.ai/docs/concepts/engine-adapters.html): Engine-agnostic core and adapter boundary.
+- [Nodes and replication](https://letsinfer.ai/docs/concepts/sites.html): Main and child nodes, trust, and one stable endpoint.
+- [Runtime format](https://letsinfer.ai/docs/reference/runtime-format.html): Runtime schema and publication contract.
+- [Watchdog](https://letsinfer.ai/docs/operations/watchdog.html): Telemetry, crash recording, and engine protection.
+
+## Source and license
+
+- [GitHub repository](https://github.com/letsinferlabs/letsinfer): Source, releases, issues, and contribution history.
+- [AGPL-3.0-only license](https://github.com/letsinferlabs/letsinfer/blob/main/LICENSE): Project license.
