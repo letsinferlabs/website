@@ -10,6 +10,7 @@ Let's Infer is an open-source, engine-agnostic inference distribution and runtim
 - [Installation](https://letsinfer.ai/docs/getting-started/installation.html): Install on Linux or macOS and initialize a node.
 - [Features](https://letsinfer.ai/docs/features.html): Model installation, serving, replication, observability, safety, and updates.
 - [CLI reference](https://letsinfer.ai/docs/reference/cli.html): Stable command-line workflows.
+- [Agent skills](https://github.com/letsinferlabs/skills): Portable Let’s Infer workflows for Codex, Claude Code, Cursor, Grok Build, DeepSeek Harness, and Hermes Agent.
 
 ## Technical concepts
 
@@ -17,6 +18,7 @@ Let's Infer is an open-source, engine-agnostic inference distribution and runtim
 - [Engine protocol](https://letsinfer.ai/docs/concepts/engine-adapters.html): Engine-agnostic core and adapter boundary.
 - [Nodes and replication](https://letsinfer.ai/docs/concepts/sites.html): Main and child nodes, trust, and one stable endpoint.
 - [Runtime format](https://letsinfer.ai/docs/reference/runtime-format.html): Runtime schema and publication contract.
+- [Develop runtimes](https://letsinfer.ai/docs/contributing/runtimes.html): Runtime and Engine authoring, deterministic validation, and pull-request verification.
 - [Watchdog](https://letsinfer.ai/docs/operations/watchdog.html): Telemetry, crash recording, and engine protection.
 
 ## Source and license
