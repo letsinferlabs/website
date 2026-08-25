@@ -6,6 +6,7 @@ Let's Infer is an open-source, engine-agnostic inference distribution and runtim
 
 ## Start here
 
+- [Models](https://letsinfer.ai/models/): Qualified models by hardware, measured performance, and complete benchmark telemetry.
 - [Documentation](https://letsinfer.ai/docs/): Product overview and documentation map.
 - [Installation](https://letsinfer.ai/docs/getting-started/installation.html): Install on Linux or macOS and initialize a node.
 - [Features](https://letsinfer.ai/docs/features.html): Model installation, serving, replication, observability, safety, and updates.

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Models · Let's Infer</title>
+    <meta name="description" content="Explore qualified Let's Infer models by hardware, compare measured performance, and inspect complete per-tick clocks, temperatures, utilization, and storage telemetry.">
+    <meta name="generator" content="VitePress v2.0.0-alpha.19">
+    <link rel="preload stylesheet" href="/assets/style.vUxvZTPx.css" as="style">
+    <link rel="preload stylesheet" href="/vp-icons.css" as="style">
+    <script type="module" src="/assets/chunks/metadata.d030f6fc.js"></script>
+    <script type="module" src="/assets/app.B8uS3UmB.js"></script>
+    <link rel="preload" href="/assets/inter-roman-latin.BOE8-mWI.woff2" as="font" type="font/woff2" crossorigin="">
+    <link rel="modulepreload" href="/assets/chunks/theme.BOB3eEX8.js">
+    <link rel="modulepreload" href="/assets/chunks/framework.iop3kLdK.js">
+    <link rel="modulepreload" href="/assets/models_index.md.QW3Q1H6E.lean.js">
+    <meta name="application-name" content="Let's Infer">
+    <meta id="theme-color-light" name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
+    <meta id="theme-color-dark" name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/logo.png">
+    <script id="check-dark-mode">(()=>{let e=localStorage.getItem(`vitepress-theme-appearance`)||`auto`,t=window.matchMedia(`(prefers-color-scheme: dark)`).matches;(!e||e===`auto`?t:e===`dark`)&&document.documentElement.classList.add(`dark`)})();</script>
+    <script id="check-mac-os">document.documentElement.classList.toggle(`mac`,/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
+    <link rel="canonical" href="https://letsinfer.ai/models/">
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="Let's Infer for language models">
+    <link rel="license" href="https://github.com/letsinferlabs/letsinfer/blob/main/LICENSE">
+    <meta name="author" content="Let's Infer">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta property="og:site_name" content="Let's Infer">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Models · Let's Infer">
+    <meta property="og:description" content="Explore qualified Let's Infer models by hardware, compare measured performance, and inspect complete per-tick clocks, temperatures, utilization, and storage telemetry.">
+    <meta property="og:url" content="https://letsinfer.ai/models/">
+    <meta property="og:image" content="https://letsinfer.ai/og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Let's Infer — local AI, installed like software">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Models · Let's Infer">
+    <meta name="twitter:description" content="Explore qualified Let's Infer models by hardware, compare measured performance, and inspect complete per-tick clocks, temperatures, utilization, and storage telemetry.">
+    <meta name="twitter:image" content="https://letsinfer.ai/og-image.png">
+    <meta name="twitter:image:alt" content="Let's Infer — local AI, installed like software">
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://letsinfer.ai/#organization","name":"Let's Infer","url":"https://letsinfer.ai/","logo":{"@type":"ImageObject","url":"https://letsinfer.ai/logo.png","contentUrl":"https://letsinfer.ai/logo.png","width":512,"height":512},"sameAs":["https://github.com/letsinferlabs"]},{"@type":"WebSite","@id":"https://letsinfer.ai/#website","name":"Let's Infer","url":"https://letsinfer.ai/","description":"Turn your AI hardware into one reliable inference service.","inLanguage":"en-US","publisher":{"@id":"https://letsinfer.ai/#organization"}},{"@type":["SoftwareApplication","SoftwareSourceCode"],"@id":"https://letsinfer.ai/#software","name":"Let's Infer","alternateName":"letsinfer","description":"Open-source, engine-agnostic inference distribution and runtime manager for local AI hardware.","url":"https://letsinfer.ai/","codeRepository":"https://github.com/letsinferlabs/letsinfer","downloadUrl":"https://letsinfer.ai/install.sh","license":"https://github.com/letsinferlabs/letsinfer/blob/main/LICENSE","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS","isAccessibleForFree":true,"publisher":{"@id":"https://letsinfer.ai/#organization"}},{"@type":"CollectionPage","@id":"https://letsinfer.ai/models/#article","headline":"Models","description":"Explore qualified Let's Infer models by hardware, compare measured performance, and inspect complete per-tick clocks, temperatures, utilization, and storage telemetry.","url":"https://letsinfer.ai/models/","mainEntityOfPage":"https://letsinfer.ai/models/","inLanguage":"en-US","isPartOf":{"@id":"https://letsinfer.ai/#website"},"about":{"@id":"https://letsinfer.ai/#software"},"author":{"@id":"https://letsinfer.ai/#organization"},"publisher":{"@id":"https://letsinfer.ai/#organization"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://letsinfer.ai/"},{"@type":"ListItem","position":2,"name":"Models","item":"https://letsinfer.ai/models/"}]}]}</script>
+  </head>
+  <body>
+    <div id="app"><div style="position:relative;" data-v-0cf61682><div><div class="models-page"><header class="models-nav"><a class="models-brand" href="/" aria-label="Let&#39;s Infer home"><span class="models-brand__mark" aria-hidden="true"></span><span>Let&#39;s Infer</span></a><nav aria-label="Primary navigation"><a class="is-current" href="/models/" aria-current="page">Models</a><a href="/docs/">Docs</a><a href="https://github.com/letsinferlabs/letsinfer" target="_blank" rel="noreferrer">GitHub</a><button class="models-theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Use dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"></path></svg></button></nav></header><main class="models-main"><section class="models-intro"><p class="models-eyebrow">Qualified model runtimes</p><h1>Models</h1><p> Explore measured model performance on supported hardware, then inspect every recorded benchmark and hardware sample. </p></section><section class="models-browser" aria-labelledby="models-comparison-title"><div class="models-browser__controls"><div class="models-mode" aria-label="Browse benchmarks by"><button type="button" aria-pressed="true">By device</button><button type="button" aria-pressed="false">By model</button></div><label><span>Device</span><select><!--[--><option value="dgx-spark" selected>NVIDIA DGX Spark</option><!--]--></select></label></div><div class="models-metrics" aria-label="Comparison metric"><!--[--><button type="button" aria-pressed="true">Output speed</button><button type="button" aria-pressed="false">First response</button><button type="button" aria-pressed="false">Throughput</button><button type="button" aria-pressed="false">Max context</button><!--]--></div><div class="models-comparison__heading"><div><h2 id="models-comparison-title">Output speed on NVIDIA DGX Spark</h2><p>decode tokens/second · short code · C1</p></div><span>2 qualified results</span></div><div class="models-results"><!--[--><button class="models-result" type="button" aria-pressed="false"><span class="models-result__identity"><strong>DeepSeek V4 Flash</strong><small>SparkInfer · 0.1.0-rc.35</small></span><span class="models-result__measurement"><span class="models-result__track" aria-hidden="true"><span style="width:100%;"></span></span><span>56.98 tok/s</span></span><span class="models-result__context">0.61s cached TTFT · 260K context </span></button><button class="models-result" type="button" aria-pressed="false"><span class="models-result__identity"><strong>Qwen3.8 27B</strong><small>SGLang · 0.1.0-rc.17</small></span><span class="models-result__measurement"><span class="models-result__track" aria-hidden="true"><span style="width:47.96490093163561%;"></span></span><span>27.33 tok/s</span></span><span class="models-result__context">0.39s cached TTFT · 260K context </span></button><!--]--></div><p class="models-comparison__note"> Results use each model’s exact tokenizer and runtime. Compare devices within one model; output speed is not a model-quality score. </p></section><!----></main><footer class="models-footer"><span>Let&#39;s Infer</span><nav><a href="/docs/">Documentation</a><a href="https://github.com/letsinferlabs/runtimes">Runtime source</a></nav></footer></div></div></div></div>
+    
+    
+  </body>
+</html>
